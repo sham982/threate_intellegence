@@ -1,4 +1,4 @@
-import { ThreatIntelligenceResult, IPReport, URLReport } from './types';
+import { ThreatIntelligenceResult, IPReport, URLReport, MalwareReport, CyberThreatReport } from './types';
 
 const IP_THREAT_SOURCES = [
   { name: 'Virus Total', id: 'virustotal', url: 'https://www.virustotal.com/gui/search/' },
@@ -42,6 +42,64 @@ const URL_THREAT_SOURCES = [
   { name: 'Bulkblacklist', id: 'bulkblacklist', url: 'https://www.bulkblacklist.com/' },
   { name: 'DocGuard', id: 'docguard', url: 'https://app.docguard.io/' },
   { name: 'IOC.One', id: 'iocone', url: 'https://ioc.one/' },
+];
+
+const MALWARE_THREAT_SOURCES = [
+  { name: 'Virus Total', id: 'virustotal', url: 'https://www.virustotal.com' },
+  { name: 'Alien Vault OTX', id: 'alienvault', url: 'https://otx.alienvault.com/browse/global/indicators' },
+  { name: 'Threat Fox', id: 'threatfox', url: 'https://threatfox.abuse.ch/browse/' },
+  { name: 'Malware Bazaar', id: 'malwarebazaar', url: 'https://bazaar.abuse.ch/browse/' },
+  { name: 'Hybrid Analysis', id: 'hybridanalysis', url: 'https://www.hybrid-analysis.com/' },
+  { name: 'Any Run', id: 'anyrun', url: 'https://app.any.run/' },
+  { name: 'Joe Sandbox', id: 'joesandbox', url: 'https://www.joesandbox.com/#windows' },
+  { name: 'Comodo Valkyrie', id: 'valkyrie', url: 'https://valkyrie.comodo.com' },
+  { name: 'Browserling', id: 'browserling', url: 'https://www.browserling.com/' },
+  { name: 'Cuckoo Sandbox Online', id: 'cuckoo', url: 'https://sandbox.pikker.ee/' },
+  { name: 'Triage', id: 'triage', url: 'https://tria.ge/reports/public' },
+  { name: 'CAPE', id: 'cape', url: 'https://capesandbox.com/' },
+  { name: 'Intezer', id: 'intezer', url: 'https://analyze.intezer.com/scan' },
+  { name: 'Malshare', id: 'malshare', url: 'https://malshare.com/' },
+  { name: 'YOMI', id: 'yomi', url: 'https://yomi.yoroi.company/upload' },
+  { name: 'InQuest Labs', id: 'inquest', url: 'https://labs.inquest.net/dfi' },
+  { name: 'Manalyzer', id: 'manalyzer', url: 'https://manalyzer.org/' },
+  { name: 'ThreatMiner', id: 'threatminer', url: 'https://www.threatminer.org/' },
+  { name: 'Pulsedive', id: 'pulsedive', url: 'https://pulsedive.com/' },
+  { name: 'IObit', id: 'iobit', url: 'https://cloud.iobit.com/index.php' },
+  { name: 'DocGuard', id: 'docguard', url: 'https://app.docguard.io/' },
+  { name: 'Sophos Intelix', id: 'sophos', url: 'https://intelix.sophos' },
+];
+
+const CYBER_THREAT_SOURCES = [
+  { name: 'Vuldb', id: 'vuldb', url: 'https://vuldb.com/' },
+  { name: 'Alien Vault OTX', id: 'alienvault', url: 'https://otx.alienvault.com/browse/global/indicators' },
+  { name: 'IBM X-Force', id: 'xforce', url: 'https://exchange.xforce.ibmcloud.com/' },
+  { name: 'Feedly', id: 'feedly', url: 'https://feedly.com/' },
+  { name: 'Inoreader', id: 'inoreader', url: 'https://www.inoreader.com/' },
+  { name: 'PulseDive Threat Feed', id: 'pulsedive-threat', url: 'https://pulsedive.com/explore/threats/' },
+  { name: 'Ransomlook', id: 'ransomlook', url: 'https://www.ransomlook.io/' },
+  { name: 'Ransomware Live', id: 'ransomwarelive', url: 'https://www.ransomware.live/' },
+  { name: 'HudsonRock', id: 'hudsonrock', url: 'https://www.hudsonrock.com/threat-intelligence-cybercrime-tools' },
+  { name: 'Malpedia', id: 'malpedia', url: 'https://malpedia.caad.fkie.fraunhofer.de/' },
+  { name: 'IntelX', id: 'intelx', url: 'https://intelx.io/tools?tab=general' },
+  { name: 'SANS ISC', id: 'sans', url: 'https://isc.sans.edu/' },
+  { name: 'SOCRadar', id: 'socradar', url: 'https://socradar.io/labs' },
+  { name: 'Threat Fox', id: 'threatfox', url: 'https://threatfox.abuse.ch/browse/' },
+  { name: 'ThreatMiner', id: 'threatminer', url: 'https://www.threatminer.org/' },
+  { name: 'Malware Bazaar', id: 'malwarebazaar', url: 'https://bazaar.abuse.ch/browse/' },
+  { name: 'Virus Total', id: 'virustotal', url: 'https://www.virustotal.com/gui/home/search' },
+  { name: 'Shodan', id: 'shodan', url: 'https://www.shodan.io/' },
+  { name: 'Censys', id: 'censys', url: 'https://censys.io/ipv4' },
+  { name: 'Risk IQ', id: 'riskiq', url: 'https://community.riskiq.com/home' },
+  { name: 'Mandiant', id: 'mandiant', url: 'https://www.mandiant.com/advantage/threat-intelligence/free-version' },
+  { name: 'CrowdStrike', id: 'crowdstrike', url: 'https://www.crowdstrike.com/adversaries/' },
+  { name: 'SecureWorks', id: 'secureworks', url: 'https://www.secureworks.com/research/threat-profiles' },
+  { name: 'Dragos', id: 'dragos', url: 'https://www.dragos.com/threat-groups/' },
+  { name: 'Threat Actor Map', id: 'aptmap', url: 'https://aptmap.netlify.app/' },
+  { name: 'Ransom Wiki', id: 'ransomwiki', url: 'https://ransom.wiki/' },
+  { name: 'InTheWild', id: 'inthewild', url: 'https://inthewild.io/feed' },
+  { name: 'RESCURE', id: 'rescure', url: 'https://rescure.me/feeds.html' },
+  { name: 'IOC.One', id: 'iocone', url: 'https://ioc.one/' },
+  { name: 'Dark Web Hub', id: 'darkweb', url: 'https://slcyber.io/dark-web-hub/' },
 ];
 
 function isValidIP(ip: string): boolean {
@@ -104,10 +162,12 @@ export async function checkIP(ip: string): Promise<IPReport> {
       const useDirectLink = Math.random() > 0.6;
 
       if (useDirectLink) {
+        const searchUrl = new URL(source.url);
+        searchUrl.searchParams.set('q', ip);
         results.push({
           source: source.name,
           status: 'success',
-          url: `${source.url}${ip}`,
+          url: searchUrl.toString(),
           timestamp: Date.now(),
           data: {
             type: 'direct_link',
@@ -170,19 +230,28 @@ export async function checkURL(urlStr: string): Promise<URLReport> {
       let sourceUrl = source.url;
 
       // Special handling for different platforms
-      if (source.id === 'sucuri' && !source.url.endsWith('=')) {
-        sourceUrl = `${source.url}${normalizedUrl}`;
-      } else if (source.id === 'urlscan') {
-        sourceUrl = `${source.url}?q=${encodeURIComponent(normalizedUrl)}`;
-      } else if (source.id === 'securitytrails') {
-        const domain = new URL(normalizedUrl).hostname;
-        sourceUrl = `${source.url}${domain}/dns`;
-      } else if (source.id === 'pulsedive') {
-        sourceUrl = `${source.url}?query=${encodeURIComponent(normalizedUrl)}`;
-      } else if (source.id === 'virustotal') {
-        sourceUrl = `${source.url}${encodeURIComponent(normalizedUrl)}`;
-      } else {
-        sourceUrl = `${source.url}${encodeURIComponent(normalizedUrl)}`;
+      try {
+        const urlObj = new URL(source.url);
+        if (source.id === 'sucuri' && !source.url.endsWith('=')) {
+          sourceUrl = `${source.url}${normalizedUrl}`;
+        } else if (source.id === 'urlscan') {
+          urlObj.searchParams.set('q', normalizedUrl);
+          sourceUrl = urlObj.toString();
+        } else if (source.id === 'securitytrails') {
+          const domain = new URL(normalizedUrl).hostname;
+          sourceUrl = `${source.url}${domain}/dns`;
+        } else if (source.id === 'pulsedive') {
+          urlObj.searchParams.set('query', normalizedUrl);
+          sourceUrl = urlObj.toString();
+        } else if (source.id === 'virustotal') {
+          urlObj.searchParams.set('q', normalizedUrl);
+          sourceUrl = urlObj.toString();
+        } else {
+          urlObj.searchParams.set('q', normalizedUrl);
+          sourceUrl = urlObj.toString();
+        }
+      } catch (e) {
+        sourceUrl = source.url;
       }
 
       if (useDirectLink) {
@@ -237,12 +306,147 @@ export async function checkURL(urlStr: string): Promise<URLReport> {
   return report;
 }
 
+export async function checkMalware(fileHash: string): Promise<MalwareReport> {
+  if (!fileHash || fileHash.length < 8) {
+    throw new Error('Invalid file hash format');
+  }
+
+  const results: ThreatIntelligenceResult[] = [];
+
+  for (const source of MALWARE_THREAT_SOURCES) {
+    try {
+      const useDirectLink = Math.random() > 0.5;
+
+      if (useDirectLink) {
+        const searchUrl = new URL(source.url);
+        searchUrl.searchParams.set('hash', fileHash);
+        results.push({
+          source: source.name,
+          status: 'success',
+          url: searchUrl.toString(),
+          timestamp: Date.now(),
+          data: {
+            type: 'direct_link',
+            message: 'Click link to analyze file on this platform',
+          },
+        });
+      } else {
+        const mockData = {
+          detected: Math.random() > 0.6,
+          detectionRatio: `${Math.floor(Math.random() * 50)}/${Math.floor(Math.random() * 70)}`,
+          lastAnalysis: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+          fileType: ['PE32', 'PE64', 'ELF', 'Script'][Math.floor(Math.random() * 4)],
+        };
+
+        results.push({
+          source: source.name,
+          status: 'success',
+          data: mockData,
+          timestamp: Date.now(),
+        });
+      }
+    } catch (error) {
+      results.push({
+        source: source.name,
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: Date.now(),
+      });
+    }
+  }
+
+  const { score, level } = calculateRiskScore(results);
+
+  const report: MalwareReport = {
+    file: fileHash,
+    fileHash: fileHash,
+    timestamp: Date.now(),
+    results,
+    riskScore: score,
+    riskLevel: level,
+    type: 'malware',
+  };
+
+  return report;
+}
+
+export async function checkCyberThreat(indicator: string): Promise<CyberThreatReport> {
+  if (!indicator || indicator.length < 3) {
+    throw new Error('Invalid indicator format');
+  }
+
+  const results: ThreatIntelligenceResult[] = [];
+
+  for (const source of CYBER_THREAT_SOURCES) {
+    try {
+      const useDirectLink = Math.random() > 0.5;
+
+      if (useDirectLink) {
+        results.push({
+          source: source.name,
+          status: 'success',
+          url: source.url,
+          timestamp: Date.now(),
+          data: {
+            type: 'direct_link',
+            message: 'Click link to search on this threat intelligence platform',
+          },
+        });
+      } else {
+        const mockData = {
+          threats_found: Math.random() > 0.7,
+          threat_count: Math.floor(Math.random() * 100),
+          actor_linked: Math.random() > 0.6,
+          last_updated: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+          feed_sources: Math.floor(Math.random() * 20),
+        };
+
+        results.push({
+          source: source.name,
+          status: 'success',
+          data: mockData,
+          timestamp: Date.now(),
+        });
+      }
+    } catch (error) {
+      results.push({
+        source: source.name,
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: Date.now(),
+      });
+    }
+  }
+
+  const { score, level } = calculateRiskScore(results);
+
+  const report: CyberThreatReport = {
+    indicator,
+    indicatorType: 'other',
+    timestamp: Date.now(),
+    results,
+    riskScore: score,
+    riskLevel: level,
+    type: 'cyber-threat',
+  };
+
+  return report;
+}
+
 export function getIPThreatSources() {
   return IP_THREAT_SOURCES;
 }
 
 export function getURLThreatSources() {
   return URL_THREAT_SOURCES;
+}
+
+export function getMalwareThreatSources() {
+  return MALWARE_THREAT_SOURCES;
+}
+
+export function getCyberThreatSources() {
+  return CYBER_THREAT_SOURCES;
 }
 
 export function generateIPThreatURL(ip: string, sourceId: string): string {

@@ -33,14 +33,18 @@ function ResultStatus({ result }: { result: ThreatIntelligenceResult }) {
     );
   }
   
-  if (result.url) {
-    return (
-      <Link href={result.url} target="_blank" rel="noopener noreferrer">
-        <Badge variant="outline" className="bg-accent/20 text-accent hover:bg-accent/30 cursor-pointer">
-          View on Site →
-        </Badge>
-      </Link>
-    );
+  if (result.url && typeof result.url === 'string' && result.url.length > 0) {
+    // Validate URL format to avoid malformed URLs
+    const isValidUrl = result.url.startsWith('http://') || result.url.startsWith('https://');
+    if (isValidUrl) {
+      return (
+        <a href={result.url} target="_blank" rel="noopener noreferrer" className="no-underline">
+          <Badge variant="outline" className="bg-accent/20 text-accent hover:bg-accent/30 cursor-pointer">
+            View on Site →
+          </Badge>
+        </a>
+      );
+    }
   }
 
   return (

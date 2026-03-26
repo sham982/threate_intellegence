@@ -25,12 +25,32 @@ export interface URLReport {
   type: 'url';
 }
 
-export type ThreatReport = IPReport | URLReport;
+export interface MalwareReport {
+  file: string;
+  fileHash?: string;
+  timestamp: number;
+  results: ThreatIntelligenceResult[];
+  riskScore: number; // 0-100
+  riskLevel: 'safe' | 'suspicious' | 'malicious';
+  type: 'malware';
+}
+
+export interface CyberThreatReport {
+  indicator: string;
+  indicatorType: 'hash' | 'ip' | 'domain' | 'cve' | 'other';
+  timestamp: number;
+  results: ThreatIntelligenceResult[];
+  riskScore: number; // 0-100
+  riskLevel: 'safe' | 'suspicious' | 'malicious';
+  type: 'cyber-threat';
+}
+
+export type ThreatReport = IPReport | URLReport | MalwareReport | CyberThreatReport;
 
 export interface CheckHistory {
   id: string;
-  query: string; // IP or URL
-  type: 'ip' | 'url';
+  query: string; // IP, URL, file hash, or indicator
+  type: 'ip' | 'url' | 'malware' | 'cyber-threat';
   timestamp: number;
   riskScore: number;
   riskLevel: 'safe' | 'suspicious' | 'malicious';
