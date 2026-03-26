@@ -59,6 +59,24 @@ export function ResultModal({ isOpen, report, onClose, onExport }: ResultModalPr
             </div>
           </div>
 
+          {/* What You Will Get Section - IP Report Only */}
+          {report.type === 'ip' && (
+            <div className="bg-muted/50 border border-border rounded p-4 space-y-3">
+              <h3 className="font-semibold text-sm">What You Will Get With This Tool</h3>
+              <ul className="text-xs text-muted-foreground space-y-2 ml-4 list-disc">
+                <li><span className="font-medium text-foreground">ISP and Organization&apos;s Name</span> - Identifies the internet service provider and organization associated with the IP</li>
+                <li><span className="font-medium text-foreground">IP&apos;s Hostname</span> - Reverse DNS lookup to find the hostname assigned to the IP address</li>
+                <li><span className="font-medium text-foreground">Country</span> - Geographic location at the country level</li>
+                <li><span className="font-medium text-foreground">Region/State</span> - Administrative region or state where the IP is located</li>
+                <li><span className="font-medium text-foreground">City</span> - City-level geolocation data</li>
+                <li><span className="font-medium text-foreground">Latitude and Longitude</span> - Precise geographic coordinates (best guess estimate)</li>
+                <li><span className="font-medium text-foreground">Area Code</span> - Telephone area code for the region</li>
+                <li><span className="font-medium text-foreground">Known Services</span> - Any known services and open ports running on the IP address</li>
+                <li><span className="font-medium text-foreground">Average Risk Score</span> - Aggregated risk assessment from all threat intelligence sources</li>
+              </ul>
+            </div>
+          )}
+
           {/* Results */}
           <ScrollArea className="flex-1">
             <div className="space-y-2 pr-4">
