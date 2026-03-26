@@ -4,6 +4,10 @@ import { ThreatReport as ThreatReportType, ThreatIntelligenceResult } from '@/li
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { exportToPDF } from '@/lib/export-pdf';
+import { exportToExcel } from '@/lib/export-excel';
+import { Download } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ThreatReportProps {
   report: ThreatReportType;
@@ -59,6 +63,26 @@ export function ThreatReport({ report, onExport }: ThreatReportProps) {
   const successResults = report.results.filter(r => r.status === 'success');
   const errorResults = report.results.filter(r => r.status === 'error');
 
+  const handleExportPDF = async () => {
+    try {
+      await exportToPDF(report, `threat-report-${Date.now()}.pdf`);
+      toast.success('Report exported as PDF successfully');
+    } catch (error) {
+      toast.error('Failed to export PDF');
+      console.error('PDF export error:', error);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      exportToExcel(report, `threat-report-${Date.now()}.xlsx`);
+      toast.success('Report exported as Excel successfully');
+    } catch (error) {
+      toast.error('Failed to export Excel');
+      console.error('Excel export error:', error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card className="border-2 bg-gradient-to-br from-card to-card/50">
@@ -99,6 +123,24 @@ export function ThreatReport({ report, onExport }: ThreatReportProps) {
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Threat Intelligence Results</h3>
           <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleExportPDF}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              PDF
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleExportExcel}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Excel
+            </Button>
             {onExport && (
               <>
                 <Button

@@ -12,7 +12,10 @@ import { CyberThreatChecker } from '@/components/cyber-threat-checker';
 import { ThreatReport } from '@/components/threat-report';
 import { ThreatReport as ThreatReportType, CheckHistory } from '@/lib/types';
 import { ThreatSourcesInfo } from '@/components/threat-sources-info';
-import { Trash2 } from 'lucide-react';
+import { exportToPDF } from '@/lib/export-pdf';
+import { exportToExcel } from '@/lib/export-excel';
+import { Trash2, Download } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function DashboardPage() {
   const [currentReport, setCurrentReport] = useState<ThreatReportType | null>(null);
@@ -46,6 +49,36 @@ export default function DashboardPage() {
     const updatedHistory = history.filter(item => item.id !== id);
     setHistory(updatedHistory);
     localStorage.setItem('checkHistory', JSON.stringify(updatedHistory));
+  };
+
+  const handleExportHistoryPDF = async () => {
+    try {
+      await exportToPDF(history, `threat-history-${Date.now()}.pdf`);
+      toast.success('History exported as PDF successfully');
+    } catch (error) {
+      toast.error('Failed to export PDF');
+      console.error('PDF export error:', error);
+    }
+  };
+
+  const handleExportHistoryExcel = async () => {
+    try {
+      exportToExcel(history, `threat-history-${Date.now()}.xlsx`);
+      toast.success('History exported as Excel successfully');
+    } catch (error) {
+      toast.error('Failed to export Excel');
+      console.error('Excel export error:', error);
+    }
+  };
+
+  const groupHistoryByType = (hist: CheckHistory[]) => {
+    return hist.reduce((acc, item) => {
+      if (!acc[item.type]) {
+        acc[item.type] = [];
+      }
+      acc[item.type].push(item);
+      return acc;
+    }, {} as Record<string, CheckHistory[]>);
   };
 
   const handleExport = (format: 'json' | 'csv' | 'html') => {
@@ -136,6 +169,14 @@ export default function DashboardPage() {
     URL.revokeObjectURL(url);
   };
 
+  const groupedHistory = groupHistoryByType(history);
+  const typeLabels: Record<string, string> = {
+    ip: 'IP Checks',
+    url: 'URL Checks',
+    malware: 'Malware Analysis',
+    'cyber-threat': 'Cyber Threats',
+  };
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-background dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
@@ -224,10 +265,36 @@ export default function DashboardPage() {
             <TabsContent value="history" className="space-y-4">
               <Card className="border-2">
                 <CardHeader>
-                  <CardTitle>Check History</CardTitle>
-                  <CardDescription>
-                    Your previous threat intelligence checks
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Check History</CardTitle>
+                      <CardDescription>
+                        Your previous threat intelligence checks organized by type
+                      </CardDescription>
+                    </div>
+                    {history.length > 0 && (
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleExportHistoryPDF}
+                          className="gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          PDF
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleExportHistoryExcel}
+                          className="gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          Excel
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {history.length === 0 ? (
@@ -235,43 +302,56 @@ export default function DashboardPage() {
                       No checks yet. Start by checking an IP, URL, malware hash, or cyber threat indicator.
                     </p>
                   ) : (
-                    <div className="space-y-3">
-                      {history.map((item) => (
-                        <Card key={item.id} className="border">
-                          <CardContent className="pt-6">
-                            <div className="flex items-center justify-between gap-4">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <h4 className="font-mono font-semibold text-lg break-all">{item.query}</h4>
-                                  <span className="text-xs px-2 py-1 rounded bg-accent/20 text-accent uppercase font-semibold">
-                                    {item.type}
-                                  </span>
+                    <Tabs defaultValue={Object.keys(groupedHistory)[0]} className="w-full">
+                      <TabsList className="grid w-full max-w-md grid-cols-4">
+                        {Object.entries(groupedHistory).map(([type, items]) => (
+                          <TabsTrigger key={type} value={type} className="text-xs">
+                            {typeLabels[type] || type} ({items.length})
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+
+                      {Object.entries(groupedHistory).map(([type, items]) => (
+                        <TabsContent key={type} value={type} className="space-y-3 mt-4">
+                          {items.map((item) => (
+                            <Card key={item.id} className="border">
+                              <CardContent className="pt-6">
+                                <div className="flex items-center justify-between gap-4">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <h4 className="font-mono font-semibold text-lg break-all text-foreground">{item.query}</h4>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                      {new Date(item.timestamp).toLocaleString()}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-4">
+                                    <div className="text-right">
+                                      <p className="text-2xl font-bold text-foreground">{item.riskScore}</p>
+                                      <p className={`text-xs uppercase font-semibold ${
+                                        item.riskLevel === 'malicious' ? 'text-red-600' :
+                                        item.riskLevel === 'suspicious' ? 'text-orange-600' :
+                                        'text-green-600'
+                                      }`}>
+                                        {item.riskLevel}
+                                      </p>
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleDeleteHistory(item.id)}
+                                      className="text-destructive hover:bg-destructive/10"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
                                 </div>
-                                <p className="text-sm text-muted-foreground">
-                                  {new Date(item.timestamp).toLocaleString()}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-4">
-                                <div className="text-right">
-                                  <p className="text-2xl font-bold">{item.riskScore}</p>
-                                  <p className="text-xs text-muted-foreground uppercase font-semibold">
-                                    {item.riskLevel}
-                                  </p>
-                                </div>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleDeleteHistory(item.id)}
-                                  className="text-destructive hover:bg-destructive/10"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </TabsContent>
                       ))}
-                    </div>
+                    </Tabs>
                   )}
                 </CardContent>
               </Card>
