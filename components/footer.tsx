@@ -98,12 +98,7 @@ export function Footer() {
           </div>
         </div>
 
-        <Separator className="my-8" />
 
-        <div className="flex flex-col md:flex-row items-center justify-between text-sm text-muted-foreground">
-          <p>Threat Intelligence Checker - Comprehensive Security Analysis Platform</p>
-          <p className="mt-4 md:mt-0">© 2024. All rights reserved.</p>
-        </div>
       </div>
     </footer>
   );
