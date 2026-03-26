@@ -11,7 +11,7 @@ import { MalwareChecker } from '@/components/malware-checker';
 import { CyberThreatChecker } from '@/components/cyber-threat-checker';
 import { ThreatReport } from '@/components/threat-report';
 import { ThreatReport as ThreatReportType, CheckHistory } from '@/lib/types';
-import { ThreatSourcesInfo } from '@/components/threat-sources-info';
+
 import { exportToPDF } from '@/lib/export-pdf';
 import { exportToExcel } from '@/lib/export-excel';
 import { Trash2, Download } from 'lucide-react';
@@ -199,12 +199,7 @@ export default function DashboardPage() {
 
             {/* IP Check Tab */}
             <TabsContent value="ip" className="space-y-6">
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="md:col-span-2">
-                  <IPChecker onReportGenerated={handleReportGenerated} />
-                </div>
-                <ThreatSourcesInfo />
-              </div>
+              <IPChecker onReportGenerated={handleReportGenerated} />
 
               {currentReport && currentReport.type === 'ip' && (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -215,12 +210,7 @@ export default function DashboardPage() {
 
             {/* URL Check Tab */}
             <TabsContent value="url" className="space-y-6">
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="md:col-span-2">
-                  <URLChecker onReportGenerated={handleReportGenerated} />
-                </div>
-                <ThreatSourcesInfo />
-              </div>
+              <URLChecker onReportGenerated={handleReportGenerated} />
 
               {currentReport && currentReport.type === 'url' && (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -231,12 +221,7 @@ export default function DashboardPage() {
 
             {/* Malware Check Tab */}
             <TabsContent value="malware" className="space-y-6">
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="md:col-span-2">
-                  <MalwareChecker onReportGenerated={handleReportGenerated} />
-                </div>
-                <ThreatSourcesInfo />
-              </div>
+              <MalwareChecker onReportGenerated={handleReportGenerated} />
 
               {currentReport && currentReport.type === 'malware' && (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -247,12 +232,7 @@ export default function DashboardPage() {
 
             {/* Cyber Threat Check Tab */}
             <TabsContent value="cyber-threat" className="space-y-6">
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="md:col-span-2">
-                  <CyberThreatChecker onReportGenerated={handleReportGenerated} />
-                </div>
-                <ThreatSourcesInfo />
-              </div>
+              <CyberThreatChecker onReportGenerated={handleReportGenerated} />
 
               {currentReport && currentReport.type === 'cyber-threat' && (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
