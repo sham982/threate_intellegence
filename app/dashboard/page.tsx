@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -10,16 +11,25 @@ import { URLChecker } from '@/components/url-checker';
 import { MalwareChecker } from '@/components/malware-checker';
 import { CyberThreatChecker } from '@/components/cyber-threat-checker';
 import { ThreatReport } from '@/components/threat-report';
+import { DashboardOverview } from '@/components/dashboard-overview';
 import { ThreatReport as ThreatReportType, CheckHistory } from '@/lib/types';
-
 import { exportToPDF } from '@/lib/export-pdf';
 import { exportToExcel } from '@/lib/export-excel';
 import { Trash2, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function DashboardPage() {
+  const searchParams = useSearchParams();
   const [currentReport, setCurrentReport] = useState<ThreatReportType | null>(null);
   const [history, setHistory] = useState<CheckHistory[]>([]);
+  const [activeTab, setActiveTab] = useState('overview');
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('checkHistory');
@@ -168,6 +178,185 @@ export default function DashboardPage() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  const groupedHistory = groupHistoryByType(history);
+  const typeLabels: Record<string, string> = {
+    ip: 'IP Checks',
+    url: 'URL Checks',
+    malware: 'Malware Analysis',
+    'cyber-threat': 'Cyber Threats',
+  };
+
+  return (
+    <ProtectedRoute>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="sticky top-14 z-30 bg-background border-b border-border">
+          <TabsList className="w-full justify-start bg-transparent border-0 rounded-none h-auto p-0 px-4 lg:px-6">
+            <TabsTrigger value="overview" className="rounded-none border-b-2 data-[state=active]:border-primary">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="ip" className="rounded-none border-b-2 data-[state=active]:border-primary">
+              IP Check
+            </TabsTrigger>
+            <TabsTrigger value="url" className="rounded-none border-b-2 data-[state=active]:border-primary">
+              URL Check
+            </TabsTrigger>
+            <TabsTrigger value="malware" className="rounded-none border-b-2 data-[state=active]:border-primary">
+              Malware
+            </TabsTrigger>
+            <TabsTrigger value="cyber-threat" className="rounded-none border-b-2 data-[state=active]:border-primary">
+              Cyber Threat
+            </TabsTrigger>
+            <TabsTrigger value="history" className="rounded-none border-b-2 data-[state=active]:border-primary">
+              History ({history.length})
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="mt-0">
+          <DashboardOverview />
+        </TabsContent>
+
+        {/* IP Check Tab */}
+        <TabsContent value="ip" className="space-y-6 p-4 lg:p-6">
+          <IPChecker onReportGenerated={handleReportGenerated} />
+          {currentReport && currentReport.type === 'ip' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <ThreatReport report={currentReport} onExport={handleExport} />
+            </div>
+          )}
+        </TabsContent>
+
+        {/* URL Check Tab */}
+        <TabsContent value="url" className="space-y-6 p-4 lg:p-6">
+          <URLChecker onReportGenerated={handleReportGenerated} />
+          {currentReport && currentReport.type === 'url' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <ThreatReport report={currentReport} onExport={handleExport} />
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Malware Check Tab */}
+        <TabsContent value="malware" className="space-y-6 p-4 lg:p-6">
+          <MalwareChecker onReportGenerated={handleReportGenerated} />
+          {currentReport && currentReport.type === 'malware' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <ThreatReport report={currentReport} onExport={handleExport} />
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Cyber Threat Check Tab */}
+        <TabsContent value="cyber-threat" className="space-y-6 p-4 lg:p-6">
+          <CyberThreatChecker onReportGenerated={handleReportGenerated} />
+          {currentReport && currentReport.type === 'cyber-threat' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <ThreatReport report={currentReport} onExport={handleExport} />
+            </div>
+          )}
+        </TabsContent>
+
+        {/* History Tab */}
+        <TabsContent value="history" className="space-y-4 p-4 lg:p-6">
+          <Card className="border-2">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Check History</CardTitle>
+                  <CardDescription>
+                    Your previous threat intelligence checks organized by type
+                  </CardDescription>
+                </div>
+                {history.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleExportHistoryPDF}
+                      className="gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      PDF
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleExportHistoryExcel}
+                      className="gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Excel
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {history.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">
+                  No checks yet. Start by checking an IP, URL, malware hash, or cyber threat indicator.
+                </p>
+              ) : (
+                <Tabs defaultValue={Object.keys(groupedHistory)[0]} className="w-full">
+                  <TabsList className="grid w-full max-w-md grid-cols-4">
+                    {Object.entries(groupedHistory).map(([type, items]) => (
+                      <TabsTrigger key={type} value={type} className="text-xs">
+                        {typeLabels[type] || type} ({items.length})
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+
+                  {Object.entries(groupedHistory).map(([type, items]) => (
+                    <TabsContent key={type} value={type} className="space-y-3 mt-4">
+                      {items.map((item) => (
+                        <Card key={item.id} className="border">
+                          <CardContent className="pt-6">
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-mono font-semibold text-lg break-all text-foreground">{item.query}</h4>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {new Date(item.timestamp).toLocaleString()}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <div className="text-right">
+                                  <p className="text-2xl font-bold text-foreground">{item.riskScore}</p>
+                                  <p className={`text-xs uppercase font-semibold ${
+                                    item.riskLevel === 'malicious' ? 'text-red-600' :
+                                    item.riskLevel === 'suspicious' ? 'text-orange-600' :
+                                    'text-green-600'
+                                  }`}>
+                                    {item.riskLevel}
+                                  </p>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDeleteHistory(item.id)}
+                                  className="text-destructive hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </ProtectedRoute>
+  );
+}
 
   const groupedHistory = groupHistoryByType(history);
   const typeLabels: Record<string, string> = {

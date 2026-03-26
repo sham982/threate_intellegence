@@ -2,14 +2,19 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Footer } from '@/components/footer'
+import { AppHeader } from '@/components/app-header'
+import { AppSidebar } from '@/components/app-sidebar'
+import { AppBreadcrumbs } from '@/components/app-breadcrumbs'
+import { FloatingActionBar } from '@/components/floating-action-bar'
+import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'IP Threat Intelligence Checker',
-  description: 'Check and analyze IP addresses against multiple threat intelligence sources. Get comprehensive security reports with risk scoring.',
+  title: 'SecCheck - Enterprise Threat Intelligence Platform',
+  description: 'Enterprise-grade security analysis platform for threat intelligence. Check IPs, URLs, and malware with comprehensive reporting.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -36,10 +41,20 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        {children}
-        <Footer />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AppHeader />
+          <AppSidebar isOpen={true} />
+          <div className="lg:ml-64 min-h-screen flex flex-col">
+            <AppBreadcrumbs />
+            <main className="flex-1">
+              {children}
+            </main>
+            <Footer />
+          </div>
+          <FloatingActionBar />
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>
