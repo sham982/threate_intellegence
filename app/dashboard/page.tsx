@@ -2,23 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ProtectedRoute } from '@/components/protected-route';
-import { ModuleSidebar, ModuleType } from '@/components/module-sidebar';
-import { ResultModal } from '@/components/result-modal';
 import { IPChecker } from '@/components/ip-checker';
 import { URLChecker } from '@/components/url-checker';
 import { MalwareChecker } from '@/components/malware-checker';
 import { CyberThreatChecker } from '@/components/cyber-threat-checker';
+import { ThreatReport } from '@/components/threat-report';
 import { ThreatReport as ThreatReportType, CheckHistory } from '@/lib/types';
-import { Trash2, History } from 'lucide-react';
+import { ThreatSourcesInfo } from '@/components/threat-sources-info';
+import { Trash2 } from 'lucide-react';
 
 export default function DashboardPage() {
-  const [activeModule, setActiveModule] = useState<ModuleType>('ip');
   const [currentReport, setCurrentReport] = useState<ThreatReportType | null>(null);
-  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [history, setHistory] = useState<CheckHistory[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('checkHistory');
@@ -29,7 +27,6 @@ export default function DashboardPage() {
 
   const handleReportGenerated = (report: ThreatReportType) => {
     setCurrentReport(report);
-    setIsResultModalOpen(true);
 
     const historyItem: CheckHistory = {
       id: Math.random().toString(36).substring(7),
@@ -54,13 +51,11 @@ export default function DashboardPage() {
   const handleExport = (format: 'json' | 'csv' | 'html') => {
     if (!currentReport) return;
 
-    const query = currentReport.type === 'ip' 
-      ? currentReport.ip 
-      : currentReport.type === 'url' 
-      ? currentReport.url 
-      : currentReport.type === 'malware' 
-      ? currentReport.file 
-      : currentReport.indicator;
+    const query = 
+      currentReport.type === 'ip' ? currentReport.ip : 
+      currentReport.type === 'url' ? currentReport.url : 
+      currentReport.type === 'malware' ? currentReport.file : 
+      currentReport.indicator;
 
     let content = '';
     let filename = `threat-report-${query}-${Date.now()}`;
@@ -80,13 +75,15 @@ export default function DashboardPage() {
       content = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
       filename += '.csv';
     } else if (format === 'html') {
-      const reportTitle = {
-        ip: 'IP Threat Report',
-        url: 'URL Threat Report',
-        malware: 'Malware Analysis Report',
-        'cyber-threat': 'Cyber Threat Report',
-      }[currentReport.type];
-
+      const reportTitle = currentReport.type === 'ip' ? 'IP Threat Report' : 
+                         currentReport.type === 'url' ? 'URL Threat Report' :
+                         currentReport.type === 'malware' ? 'Malware Analysis Report' :
+                         'Cyber Threat Intelligence Report';
+      const queryLabel = currentReport.type === 'ip' ? 'IP Address' : 
+                        currentReport.type === 'url' ? 'URL' :
+                        currentReport.type === 'malware' ? 'File Hash' :
+                        'Indicator';
+      
       content = `
         <!DOCTYPE html>
         <html>
@@ -106,7 +103,7 @@ export default function DashboardPage() {
         <body>
           <h1>${reportTitle}</h1>
           <div class="summary">
-            <p><strong>Query:</strong> <span class="url-break">${query}</span></p>
+            <p><strong>${queryLabel}:</strong> <span class="url-break">${query}</span></p>
             <p><strong>Checked:</strong> ${new Date(currentReport.timestamp).toLocaleString()}</p>
             <p class="risk">Risk Level: ${currentReport.riskLevel.toUpperCase()} (${currentReport.riskScore}/100)</p>
           </div>
@@ -142,110 +139,145 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-background dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-        {/* Header */}
-        <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
+        <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 py-4">
-            <h1 className="text-3xl font-bold">Threat Intelligence Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Check IPs, URLs, malware, and cyber threats</p>
+            <h1 className="text-2xl font-bold">Threat Intelligence Checker</h1>
+            <p className="text-sm text-muted-foreground">Check IPs, URLs, Malware, and Cyber Threats</p>
           </div>
         </header>
 
         <main className="max-w-7xl mx-auto px-4 py-8">
-          <div className="grid md:grid-cols-4 gap-6">
-            {/* Sidebar */}
-            <ModuleSidebar activeModule={activeModule} onModuleChange={setActiveModule} />
+          <Tabs defaultValue="ip" className="space-y-6">
+            <TabsList className="grid w-full max-w-2xl grid-cols-5 bg-card border border-border">
+              <TabsTrigger value="ip">IP Check</TabsTrigger>
+              <TabsTrigger value="url">URL Check</TabsTrigger>
+              <TabsTrigger value="malware">Malware</TabsTrigger>
+              <TabsTrigger value="cyber-threat">Cyber Threat</TabsTrigger>
+              <TabsTrigger value="history">History ({history.length})</TabsTrigger>
+            </TabsList>
 
-            {/* Main Content */}
-            <div className="md:col-span-3 space-y-6">
-              {/* Module Content */}
-              {activeModule === 'ip' && <IPChecker onReportGenerated={handleReportGenerated} />}
-              {activeModule === 'url' && <URLChecker onReportGenerated={handleReportGenerated} />}
-              {activeModule === 'malware' && <MalwareChecker onReportGenerated={handleReportGenerated} />}
-              {activeModule === 'cyber-threat' && <CyberThreatChecker onReportGenerated={handleReportGenerated} />}
+            {/* IP Check Tab */}
+            <TabsContent value="ip" className="space-y-6">
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="md:col-span-2">
+                  <IPChecker onReportGenerated={handleReportGenerated} />
+                </div>
+                <ThreatSourcesInfo />
+              </div>
 
-              {/* History Section */}
-              <Card>
+              {currentReport && currentReport.type === 'ip' && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <ThreatReport report={currentReport} onExport={handleExport} />
+                </div>
+              )}
+            </TabsContent>
+
+            {/* URL Check Tab */}
+            <TabsContent value="url" className="space-y-6">
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="md:col-span-2">
+                  <URLChecker onReportGenerated={handleReportGenerated} />
+                </div>
+                <ThreatSourcesInfo />
+              </div>
+
+              {currentReport && currentReport.type === 'url' && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <ThreatReport report={currentReport} onExport={handleExport} />
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Malware Check Tab */}
+            <TabsContent value="malware" className="space-y-6">
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="md:col-span-2">
+                  <MalwareChecker onReportGenerated={handleReportGenerated} />
+                </div>
+                <ThreatSourcesInfo />
+              </div>
+
+              {currentReport && currentReport.type === 'malware' && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <ThreatReport report={currentReport} onExport={handleExport} />
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Cyber Threat Check Tab */}
+            <TabsContent value="cyber-threat" className="space-y-6">
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="md:col-span-2">
+                  <CyberThreatChecker onReportGenerated={handleReportGenerated} />
+                </div>
+                <ThreatSourcesInfo />
+              </div>
+
+              {currentReport && currentReport.type === 'cyber-threat' && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <ThreatReport report={currentReport} onExport={handleExport} />
+                </div>
+              )}
+            </TabsContent>
+
+            {/* History Tab */}
+            <TabsContent value="history" className="space-y-4">
+              <Card className="border-2">
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <History className="w-5 h-5" />
-                      <div>
-                        <CardTitle>Check History</CardTitle>
-                        <CardDescription>Recent threat checks</CardDescription>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowHistory(!showHistory)}
-                    >
-                      {showHistory ? 'Hide' : 'Show'} ({history.length})
-                    </Button>
-                  </div>
+                  <CardTitle>Check History</CardTitle>
+                  <CardDescription>
+                    Your previous threat intelligence checks
+                  </CardDescription>
                 </CardHeader>
-                {showHistory && (
-                  <CardContent>
-                    {history.length === 0 ? (
-                      <p className="text-muted-foreground text-center py-8">
-                        No checks yet. Start checking threats to build your history.
-                      </p>
-                    ) : (
-                      <div className="space-y-3">
-                        {history.slice(0, 10).map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center justify-between gap-4 p-3 border border-border rounded hover:bg-accent/5 transition-colors"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xs px-2 py-1 rounded bg-accent/20 text-accent uppercase font-semibold">
-                                  {item.type}
-                                </span>
-                                <span className={`text-xs font-semibold uppercase ${
-                                  item.riskLevel === 'malicious' ? 'text-red-500' :
-                                  item.riskLevel === 'suspicious' ? 'text-yellow-500' :
-                                  'text-green-500'
-                                }`}>
-                                  {item.riskLevel}
-                                </span>
+                <CardContent>
+                  {history.length === 0 ? (
+                    <p className="text-muted-foreground text-center py-8">
+                      No checks yet. Start by checking an IP, URL, malware hash, or cyber threat indicator.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {history.map((item) => (
+                        <Card key={item.id} className="border">
+                          <CardContent className="pt-6">
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-mono font-semibold text-lg break-all">{item.query}</h4>
+                                  <span className="text-xs px-2 py-1 rounded bg-accent/20 text-accent uppercase font-semibold">
+                                    {item.type}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {new Date(item.timestamp).toLocaleString()}
+                                </p>
                               </div>
-                              <p className="font-mono text-sm break-all">{item.query}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(item.timestamp).toLocaleString()}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="text-right">
-                                <p className="text-lg font-bold">{item.riskScore}</p>
-                                <p className="text-xs text-muted-foreground">score</p>
+                              <div className="flex items-center gap-4">
+                                <div className="text-right">
+                                  <p className="text-2xl font-bold">{item.riskScore}</p>
+                                  <p className="text-xs text-muted-foreground uppercase font-semibold">
+                                    {item.riskLevel}
+                                  </p>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDeleteHistory(item.id)}
+                                  className="text-destructive hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
                               </div>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleDeleteHistory(item.id)}
-                                className="text-destructive hover:bg-destructive/10"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
               </Card>
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
         </main>
-
-        {/* Result Modal */}
-        <ResultModal
-          isOpen={isResultModalOpen}
-          report={currentReport}
-          onClose={() => setIsResultModalOpen(false)}
-          onExport={handleExport}
-        />
       </div>
     </ProtectedRoute>
   );

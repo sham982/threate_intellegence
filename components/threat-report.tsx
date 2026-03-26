@@ -4,7 +4,6 @@ import { ThreatReport as ThreatReportType, ThreatIntelligenceResult } from '@/li
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 
 interface ThreatReportProps {
   report: ThreatReportType;
@@ -34,9 +33,9 @@ function ResultStatus({ result }: { result: ThreatIntelligenceResult }) {
   }
   
   if (result.url && typeof result.url === 'string' && result.url.length > 0) {
-    // Validate URL format to avoid malformed URLs
-    const isValidUrl = result.url.startsWith('http://') || result.url.startsWith('https://');
-    if (isValidUrl) {
+    try {
+      // Validate URL by trying to construct a URL object
+      new URL(result.url);
       return (
         <a href={result.url} target="_blank" rel="noopener noreferrer" className="no-underline">
           <Badge variant="outline" className="bg-accent/20 text-accent hover:bg-accent/30 cursor-pointer">
@@ -44,6 +43,8 @@ function ResultStatus({ result }: { result: ThreatIntelligenceResult }) {
           </Badge>
         </a>
       );
+    } catch (e) {
+      // Invalid URL, don't render link
     }
   }
 
