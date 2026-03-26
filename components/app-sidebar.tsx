@@ -6,7 +6,7 @@ import {
   BarChart3,
   Shield,
   Globe,
-  Virus,
+  Bug,
   AlertCircle,
   FileText,
   Settings,
@@ -68,7 +68,7 @@ const SIDEBAR_SECTIONS: SidebarSection[] = [
       {
         id: 'malware',
         label: 'Malware Analysis',
-        icon: <Virus className="h-4 w-4" />,
+        icon: <Bug className="h-4 w-4" />,
         href: '/dashboard?tab=malware',
       },
       {
