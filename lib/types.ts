@@ -13,11 +13,24 @@ export interface IPReport {
   results: ThreatIntelligenceResult[];
   riskScore: number; // 0-100
   riskLevel: 'safe' | 'suspicious' | 'malicious';
+  type: 'ip';
 }
+
+export interface URLReport {
+  url: string;
+  timestamp: number;
+  results: ThreatIntelligenceResult[];
+  riskScore: number; // 0-100
+  riskLevel: 'safe' | 'suspicious' | 'malicious';
+  type: 'url';
+}
+
+export type ThreatReport = IPReport | URLReport;
 
 export interface CheckHistory {
   id: string;
-  ip: string;
+  query: string; // IP or URL
+  type: 'ip' | 'url';
   timestamp: number;
   riskScore: number;
   riskLevel: 'safe' | 'suspicious' | 'malicious';

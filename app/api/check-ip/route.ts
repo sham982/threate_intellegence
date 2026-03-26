@@ -1,20 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkIP } from '@/lib/threat-checker';
+import { checkIP, checkURL } from '@/lib/threat-checker';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { ip } = body;
+    const { ip, url } = body;
 
-    if (!ip) {
+    if (ip) {
+      const report = await checkIP(ip);
+      return NextResponse.json(report);
+    } else if (url) {
+      const report = await checkURL(url);
+      return NextResponse.json(report);
+    } else {
       return NextResponse.json(
-        { error: 'IP address is required' },
+        { error: 'IP address or URL is required' },
         { status: 400 }
       );
     }
-
-    const report = await checkIP(ip);
-    return NextResponse.json(report);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(

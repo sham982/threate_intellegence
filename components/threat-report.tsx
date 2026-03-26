@@ -1,13 +1,13 @@
 'use client';
 
-import { IPReport, ThreatIntelligenceResult } from '@/lib/types';
+import { ThreatReport as ThreatReportType, ThreatIntelligenceResult } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 interface ThreatReportProps {
-  report: IPReport;
+  report: ThreatReportType;
   onExport?: (format: 'json' | 'csv' | 'html') => void;
 }
 
@@ -60,7 +60,9 @@ export function ThreatReport({ report, onExport }: ThreatReportProps) {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle className="text-3xl font-bold font-mono">{report.ip}</CardTitle>
+              <CardTitle className="text-3xl font-bold font-mono break-all">
+                {report.type === 'ip' ? report.ip : report.url}
+              </CardTitle>
               <CardDescription>
                 {new Date(report.timestamp).toLocaleString()}
               </CardDescription>
