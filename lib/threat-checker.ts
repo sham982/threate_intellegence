@@ -54,22 +54,121 @@ function normalizeURL(urlStr: string): string {
   return urlStr;
 }
 
+// AbuseIPDB API Integration
+async function checkIPWithAbuseIPDB(ip: string): Promise<ThreatIntelligenceResult> {
+  const apiKey = process.env.NEXT_PUBLIC_ABUSEIPDB_API_KEY;
+  
+  if (!apiKey) {
+    return {
+      source: 'AbuseIPDB',
+      status: 'error',
+      error: 'AbuseIPDB API key not configured',
+      timestamp: Date.now(),
+    };
+  }
+
+  try {
+    // Using AbuseIPDB JSON endpoint
+    const url = `https://www.abuseipdb.com/check/${ip}/json?key=${apiKey}&days=90`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'ThreatIntelligenceChecker/1.0',
+      },
+    });
+
+    if (!response.ok) {
+      return {
+        source: 'AbuseIPDB',
+        status: 'error',
+        error: `AbuseIPDB API returned status ${response.status}`,
+        timestamp: Date.now(),
+      };
+    }
+
+    const data = await response.json();
+
+    // Parse AbuseIPDB response
+    const abuseData = {
+      ipAddress: data.ip || ip,
+      abuseConfidenceScore: data.abuseConfidenceScore || 0,
+      totalReports: data.totalReports || 0,
+      usageType: data.usageType || 'Unknown',
+      isp: data.isp || 'Unknown',
+      domain: data.domain || 'Unknown',
+      hostnames: data.hostnames || [],
+      lastReportedAt: data.lastReportedAt || null,
+      isWhitelisted: data.isWhitelisted || false,
+    };
+
+    return {
+      source: 'AbuseIPDB',
+      status: 'success',
+      data: abuseData,
+      timestamp: Date.now(),
+    };
+  } catch (error) {
+    return {
+      source: 'AbuseIPDB',
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: Date.now(),
+    };
+  }
+}
+
+// Calculate risk score and level based on AbuseIPDB confidence score
+function calculateRiskFromAbuseScore(abuseScore: number): { score: number; level: 'safe' | 'suspicious' | 'malicious' } {
+  let level: 'safe' | 'suspicious' | 'malicious' = 'safe';
+  
+  if (abuseScore >= 75) {
+    level = 'malicious';
+  } else if (abuseScore >= 25) {
+    level = 'suspicious';
+  }
+  
+  return {
+    score: abuseScore,
+    level,
+  };
+}
+
 // API Integration functions - Replace these with your real API keys and logic
 export async function checkIP(ip: string): Promise<IPReport> {
   if (!isValidIP(ip)) {
     throw new Error('Invalid IP address format');
   }
 
-  // TODO: Integrate real API calls here
-  // Example API calls to implement:
-  // 1. VirusTotal API: https://developers.virustotal.com/reference
-  // 2. AbuseIPDB API: https://docs.abuseipdb.com/
-  // 3. GreyNoise API: https://docs.greynoise.io/reference
-
   const results: ThreatIntelligenceResult[] = [];
-  
-  // Placeholder for API integration
-  throw new Error('API integration required. Set your API keys in environment variables.');
+
+  // Check with AbuseIPDB
+  const abuseResult = await checkIPWithAbuseIPDB(ip);
+  results.push(abuseResult);
+
+  // Extract abuse score for risk calculation
+  let riskScore = 0;
+  let riskLevel: 'safe' | 'suspicious' | 'malicious' = 'safe';
+
+  if (abuseResult.status === 'success' && abuseResult.data && typeof abuseResult.data === 'object') {
+    const data = abuseResult.data as any;
+    if ('abuseConfidenceScore' in data) {
+      const riskCalc = calculateRiskFromAbuseScore(data.abuseConfidenceScore);
+      riskScore = riskCalc.score;
+      riskLevel = riskCalc.level;
+    }
+  }
+
+  const report: IPReport = {
+    ip,
+    timestamp: Date.now(),
+    results,
+    riskScore,
+    riskLevel,
+    type: 'ip',
+  };
+
+  return report;
 }
 
 export async function checkURL(urlStr: string): Promise<URLReport> {
