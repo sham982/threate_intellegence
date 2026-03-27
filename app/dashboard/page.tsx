@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { Menu, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ export default function DashboardPage() {
   const [currentReport, setCurrentReport] = useState<ThreatReportType | null>(null);
   const [history, setHistory] = useState<CheckHistory[]>([]);
   const [activeTab, setActiveTab] = useState('overview');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -189,37 +191,39 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="sticky top-14 z-30 bg-background border-b border-border">
-          <TabsList className="w-full justify-start bg-transparent border-0 rounded-none h-auto p-0 px-4 lg:px-6">
-            <TabsTrigger value="overview" className="rounded-none border-b-2 data-[state=active]:border-primary">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full flex flex-col">
+        <div className="sticky top-0 z-30 bg-background border-b border-border">
+          <TabsList className="w-full justify-start bg-transparent border-0 rounded-none h-auto p-0 px-4 lg:px-6 overflow-x-auto scrollbar-hide">
+            <TabsTrigger value="overview" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary whitespace-nowrap text-sm sm:text-base">
               Overview
             </TabsTrigger>
-            <TabsTrigger value="ip" className="rounded-none border-b-2 data-[state=active]:border-primary">
+            <TabsTrigger value="ip" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary whitespace-nowrap text-sm sm:text-base">
               IP Check
             </TabsTrigger>
-            <TabsTrigger value="url" className="rounded-none border-b-2 data-[state=active]:border-primary">
+            <TabsTrigger value="url" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary whitespace-nowrap text-sm sm:text-base">
               URL Check
             </TabsTrigger>
-            <TabsTrigger value="malware" className="rounded-none border-b-2 data-[state=active]:border-primary">
+            <TabsTrigger value="malware" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary whitespace-nowrap text-sm sm:text-base">
               Malware
             </TabsTrigger>
-            <TabsTrigger value="cyber-threat" className="rounded-none border-b-2 data-[state=active]:border-primary">
-              Cyber Threat
+            <TabsTrigger value="cyber-threat" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary whitespace-nowrap text-sm sm:text-base">
+              Threat
             </TabsTrigger>
-            <TabsTrigger value="history" className="rounded-none border-b-2 data-[state=active]:border-primary">
+            <TabsTrigger value="history" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary whitespace-nowrap text-sm sm:text-base">
               History ({history.length})
             </TabsTrigger>
           </TabsList>
         </div>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="mt-0">
-          <DashboardOverview />
+        <TabsContent value="overview" className="mt-0 flex-1 overflow-y-auto">
+          <div className="p-4 sm:p-6">
+            <DashboardOverview />
+          </div>
         </TabsContent>
 
         {/* IP Check Tab */}
-        <TabsContent value="ip" className="space-y-6 p-4 lg:p-6">
+        <TabsContent value="ip" className="space-y-6 p-4 sm:p-6 flex-1 overflow-y-auto">
           <IPChecker onReportGenerated={handleReportGenerated} />
           {currentReport && currentReport.type === 'ip' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -229,7 +233,7 @@ export default function DashboardPage() {
         </TabsContent>
 
         {/* URL Check Tab */}
-        <TabsContent value="url" className="space-y-6 p-4 lg:p-6">
+        <TabsContent value="url" className="space-y-6 p-4 sm:p-6 flex-1 overflow-y-auto">
           <URLChecker onReportGenerated={handleReportGenerated} />
           {currentReport && currentReport.type === 'url' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -239,7 +243,7 @@ export default function DashboardPage() {
         </TabsContent>
 
         {/* Malware Check Tab */}
-        <TabsContent value="malware" className="space-y-6 p-4 lg:p-6">
+        <TabsContent value="malware" className="space-y-6 p-4 sm:p-6 flex-1 overflow-y-auto">
           <MalwareChecker onReportGenerated={handleReportGenerated} />
           {currentReport && currentReport.type === 'malware' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -249,7 +253,7 @@ export default function DashboardPage() {
         </TabsContent>
 
         {/* Cyber Threat Check Tab */}
-        <TabsContent value="cyber-threat" className="space-y-6 p-4 lg:p-6">
+        <TabsContent value="cyber-threat" className="space-y-6 p-4 sm:p-6 flex-1 overflow-y-auto">
           <CyberThreatChecker onReportGenerated={handleReportGenerated} />
           {currentReport && currentReport.type === 'cyber-threat' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -259,7 +263,7 @@ export default function DashboardPage() {
         </TabsContent>
 
         {/* History Tab */}
-        <TabsContent value="history" className="space-y-4 p-4 lg:p-6">
+        <TabsContent value="history" className="space-y-4 p-4 sm:p-6 flex-1 overflow-y-auto">
           <Card className="border-2">
             <CardHeader>
               <div className="flex items-center justify-between">

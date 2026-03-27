@@ -129,3 +129,24 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Responsive utilities */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Sidebar responsive adjustments */
+  @media (max-width: 1024px) {
+    .lg\:ml-64 {
+      margin-left: 0;
+    }
+    .lg\:ml-20 {
+      margin-left: 0;
+    }
+  }
+}

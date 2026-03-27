@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Footer } from '@/components/footer'
 import { AppHeader } from '@/components/app-header'
-import { AppSidebar } from '@/components/app-sidebar'
 import { AppBreadcrumbs } from '@/components/app-breadcrumbs'
 import { FloatingActionBar } from '@/components/floating-action-bar'
 import { ThemeProvider } from '@/components/theme-provider'
@@ -45,8 +44,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AppHeader />
-          <AppSidebar isOpen={true} />
-          <div className="lg:ml-64 min-h-screen flex flex-col">
+          <div className="min-h-screen flex flex-col">
             <AppBreadcrumbs />
             <main className="flex-1">
               {children}
